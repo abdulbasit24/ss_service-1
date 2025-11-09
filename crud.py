@@ -1,9 +1,11 @@
 import requests
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from catalog_service.models import Venue, Event
-from catalog_service.schemas import VenueCreate, EventCreate
+from models import Venue, Event
+from schemas import VenueCreate, EventCreate
 from fastapi import HTTPException
+from sqlalchemy import func
+import models
 
 
 def create_venue(db: Session, venue: VenueCreate):
@@ -35,22 +37,40 @@ def delete_venue(db: Session, venue_id: int):
         db.commit()
     return db_venue
 
-def create_event(db: Session, event: EventCreate):
-    db_event = Event(**event.dict())
+def create_event(db, event):
+    db_event = models.Event(
+        venue_id=event.venue_id,
+        title=event.title,
+        event_type=event.event_type,
+        event_date=event.event_date,
+        base_price=event.base_price,
+        status=event.status
+    )
     db.add(db_event)
-    db.commit()
-    db.refresh(db_event)
+    db.commit()          # ✅ commit before refresh
+    db.refresh(db_event) # ✅ will now have event_id assigned
     return db_event
 
-def get_events(db: Session, city: Optional[str] = None, type: Optional[str] = None, status: Optional[List[str]] = None, skip: int = 0, limit: int = 100):
+
+
+def get_events(db: Session, city: Optional[str] = None, 
+               event_type: Optional[str] = None,
+               status: Optional[str] = None,
+               skip: int = 0, limit: int = 100):
+
     query = db.query(Event)
+
     if city:
-        query = query.join(Venue).filter(Venue.city == city)
-    if type:
-        query = query.filter(Event.event_type == type)
+        query = query.join(Venue).filter(Venue.city.ilike(f"%{city}%"))
+
+    if event_type:
+        query = query.filter(Event.event_type.ilike(f"%{event_type}%"))
+
     if status:
-        query = query.filter(Event.status.in_(status))
+        query = query.filter(Event.status == status)
+
     return query.offset(skip).limit(limit).all()
+
 
 def get_event(db: Session, event_id: int):
     return db.query(Event).filter(Event.event_id == event_id).first()

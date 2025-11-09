@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from catalog_service.database import get_db
-from catalog_service.schemas import VenueCreate, VenueResponse
-from catalog_service.crud import create_venue, get_venues, get_venue, update_venue, delete_venue
+from database import get_db
+from schemas import VenueCreate, VenueResponse
+from crud import create_venue, get_venues, get_venue, update_venue, delete_venue
 
 router = APIRouter()
 

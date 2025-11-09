@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from .database import Base
+from database import Base
 
 class Venue(Base):
     __tablename__ = "venues"
@@ -12,11 +12,15 @@ class Venue(Base):
 
 class Event(Base):
     __tablename__ = "events"
-    event_id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, primary_key=True, autoincrement=True)
     venue_id = Column(Integer, ForeignKey("venues.venue_id"))
     title = Column(String(255))
     event_type = Column(String(255))
-    event_date = Column(DateTime)
+    event_date = Column(String(50), nullable=False)
     base_price = Column(Float)
     status = Column(String(255))
     venue = relationship("Venue", back_populates="events")
+
+# class Seats(Base):
+#     __tablename__ = "seats"
+    

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      initContainers:
+        - name: wait-for-db
+          image: busybox:1.35
+          command: ['sh', '-c', 'echo "Waiting for DB..." && until nc -z catalog-db 3306; do sleep 2; done; echo "DB is up!"']
+      containers:
+        - name: catalog-service
+          image: catalog-service:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+          env:
+            - name: MYSQL_HOST
+              value: catalog-db
+            - name: MYSQL_USER
+              value: root
+            - name: MYSQL_PASSWORD
+              value: admin
+            - name: MYSQL_DB
+              value: catelog_db
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/events
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 20

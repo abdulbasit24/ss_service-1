@@ -1,26 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from catalog_service.database import get_db
-from catalog_service.schemas import EventCreate, EventResponse
-from catalog_service.crud import create_event, get_events, get_event, update_event, delete_event
+from database import get_db
+from schemas import EventCreate, EventResponse
+from crud import create_event, get_events, get_event, update_event, delete_event
 
 router = APIRouter()
 
 @router.post("/events", response_model=EventResponse)
 def create_event_endpoint(event: EventCreate, db: Session = Depends(get_db)):
-    return create_event(db, event)
+    db_event = create_event(db, event)
+    return db_event  # ✅ Return actual created event object
 
+    
 @router.get("/events", response_model=List[EventResponse])
 def read_events_endpoint(
-    city: Optional[str] = Query(None, description="Filter by city"),
-    type: Optional[str] = Query(None, description="Filter by event_type"),
-    status: Optional[List[str]] = Query(None, description="Filter by status (ON_SALE, SOLD_OUT, CANCELLED)"),
+    city: Optional[str] = Query(None),
+    event_type: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db)
 ):
-    return get_events(db, city, type, status, skip, limit)
+    return get_events(db, city, event_type, status, skip, limit)
+
 
 @router.get("/events/{event_id}", response_model=EventResponse)
 def read_event_endpoint(event_id: int, db: Session = Depends(get_db)):
