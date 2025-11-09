@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from catalog_service.routers import venues, events
-from catalog_service.database import engine
-from catalog_service.models import Base
+from routers import venues, events
+from database import engine
+from models import Base
 
 # Create tables
 Base.metadata.create_all(bind=engine)

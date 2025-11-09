@@ -1,0 +1,29 @@
+services:
+  catalog-db:
+    image: mysql:8.0
+    container_name: catalog-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+      MYSQL_DATABASE: catelog_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - catalog_db_data:/var/lib/mysql
+
+  catalog-service:
+    build: .
+    container_name: catalog-service
+    depends_on:
+      - catalog-db
+    ports:
+      - "8081:8081"
+    environment:
+      DATABASE_URL: "mysql+pymysql://root:admin@catalog-db:3306/catelog_db"
+    volumes:
+      - .:/app
+      - C:/Users/abdul/Desktop/BITS/Scalable Services_SEZG583/Assignments/Ass-1_PS-5/Datasets:/app/Datasets
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8081"]
+
+volumes:
+  catalog_db_data:
